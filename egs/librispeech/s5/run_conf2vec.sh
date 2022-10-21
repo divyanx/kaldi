@@ -3,7 +3,6 @@
 data=$1
 
 #lm_url=www.openslr.org/resources/11
-mfccdir=mfcc
 stage=8
 
 # read folder names inside the data folder
@@ -135,12 +134,26 @@ fi
 conf2vec_root=/Users/divyansh/Research-Internship-Large-Files/confusion2vec_2.0
 
 #concat name of all folders in a single string seperated by _
-folderList_underscore_name=$(echo $folderList_underscore | sed s/\ /_/g)
-
+folderList_underscore_name=$(echo $folderList_underscore | sed s/\ /__/g)
 if [ $stage -le 9 ]; then
   python scripts/convert_sausage.py $sausages_dir/all_sausages.sau data/lang_test_tgsmall/words.txt $conf2vec_root/data/"$folderList_underscore_name".sau
 fi
 
 if [ $stage -le 10 ]; then
-  ./c2v_fasttext c2v-inter -t 0.001 -neg 64 -ws 5 -epoch 5 -input $conf2vec_root/data/"$folderList_underscore_name".sau -output $conf2vec_root/inter-confusion -thread 32 -dim 300 -lr 0.01
+  ./c2v_fasttext c2v-inter -t 0.001 -neg 64 -ws 5 -epoch 5 -input "$conf2vec_root/data/$folderList_underscore_name.sau" -output "$conf2vec_root/vectors/$folderList_underscore_name/inter-confusion" -thread 32 -dim 300 -lr 0.01
+  ./c2v_fasttext c2v-intra -t 0.001 -neg 64 -ws 5 -epoch 5 -input  "$conf2vec_root/data/$folderList_underscore_name.sau" -output "$conf2vec_root/vectors/$folderList_underscore_name/intra-confusion" -thread 32 -dim 300 -lr 0.01
+  ./c2v_fasttext c2v-top -t 0.001 -neg 64 -ws 5 -epoch 5 -input  "$conf2vec_root/data/$folderList_underscore_name.sau" -output "$conf2vec_root/vectors/$folderList_underscore_name/top-confusion" -thread 32 -dim 300 -lr 0.01
+  ./c2v_fasttext c2v-hybrid -t 0.001 -neg 64 -ws 5 -epoch 5 -input  "$conf2vec_root/data/$folderList_underscore_name.sau" -output "$conf2vec_root/vectors/$folderList_underscore_name/hybrid-confusion" -thread 32 -dim 300 -lr 0.01
+
+fi
+
+
+input_model_path=wiki.en.bin
+
+if [ $stage -le 10 ]; then
+  ./c2v_fasttext c2v-inter -t 0.001 -neg 64 -ws 5 -epoch 5 -input "$conf2vec_root/data/$folderList_underscore_name.sau" -output "$conf2vec_root/vectors/inter-confusion-pre-wiki" -thread 32 -dim 300 -lr 0.01 -inputModel "$input_model_path" -incr
+  ./c2v_fasttext c2v-intra -t 0.001 -neg 64 -ws 5 -epoch 5 -input  "$conf2vec_root/data/$folderList_underscore_name.sau" -output "$conf2vec_root/vectors/intra-confusion-pre-wiki" -thread 32 -dim 300 -lr 0.01 -inputModel "$input_model_path" -incr
+  ./c2v_fasttext c2v-top -t 0.001 -neg 64 -ws 5 -epoch 5 -input  "$conf2vec_root/data/$folderList_underscore_name.sau" -output "$conf2vec_root/vectors/top-confusion-pre-wiki" -thread 32 -dim 300 -lr 0.01 -inputModel "$input_model_path" -incr
+  ./c2v_fasttext c2v-hybrid -t 0.001 -neg 64 -ws 5 -epoch 5 -input  "$conf2vec_root/data/$folderList_underscore_name.sau" -output "$conf2vec_root/vectors/hybrid-confusion-pre-wiki" -thread 32 -dim 300 -lr 0.01 -inputModel "$input_model_path" -incr
+
 fi
