@@ -132,9 +132,15 @@ if [ $stage -le 8 ]; then
   done
 fi
 
+conf2vec_root=/Users/divyansh/Research-Internship-Large-Files/confusion2vec_2.0
 
+#concat name of all folders in a single string seperated by _
+folderList_underscore_name=$(echo $folderList_underscore | sed s/\ /_/g)
 
+if [ $stage -le 9 ]; then
+  python scripts/convert_sausage.py $sausages_dir/all_sausages.sau data/lang_test_tgsmall/words.txt $conf2vec_root/data/"$folderList_underscore_name".sau
+fi
 
-
-
-
+if [ $stage -le 10 ]; then
+  ./c2v_fasttext c2v-inter -t 0.001 -neg 64 -ws 5 -epoch 5 -input $conf2vec_root/data/"$folderList_underscore_name".sau -output $conf2vec_root/inter-confusion -thread 32 -dim 300 -lr 0.01
+fi
